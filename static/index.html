@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pix2Pix</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tools {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #canvasSection {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        #canvas {
+            border: 2px solid #333;
+            cursor: crosshair;
+            border-radius: 5px;
+        }
+
+        #uploadedImage {
+            display: none;
+        }
+
+        button {
+            margin: 0 5px;
+            padding: 10px 15px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        #uploadBtn {
+            background-color: #28a745;
+        }
+
+        #uploadBtn:hover {
+            background-color: #218838;
+        }
+
+        #clearBtn {
+            background-color: #dc3545;
+        }
+
+        #clearBtn:hover {
+            background-color: #c82333;
+        }
+
+        /* Custom cursors */
+        .drawing-cursor {
+            cursor: url('https://cdn-icons-png.flaticon.com/512/23/23892.png'), auto;
+        }
+
+        .eraser-cursor {
+            cursor: url('https://cdn-icons-png.flaticon.com/512/67/67312.png'), auto;
+        }
+
+        /* Hidden file input */
+        input[type="file"] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pix2Pix</h1>
+        <p>This AI-powered tool generates realistic shoe images that allow users to visualize fully designed shoes based on their custom outlines from simple sketches.</p>
+        <div class="tools">
+            <button id="uploadBtn">Upload Image</button>
+            <button id="clearBtn">Clear</button>
+            <button id="eraserBtn">Eraser</button>
+            <button id="drawBtn">Draw</button>
+            <button id="submitBtn">Submit</button>
+        </div>
+
+        <div id="canvasSection">
+            <canvas id="canvas" width="400" height="400"></canvas>
+            <img id="uploadedImage" src="" alt="Uploaded Image" width="400" />
+        </div>
+
+        <input type="file" id="fileInput" />
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+        let erasing = false;
+
+        // Set up canvas background
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Mouse down event to start drawing
+        canvas.addEventListener('mousedown', (event) => {
+            drawing = true;
+            ctx.beginPath();  
+            ctx.moveTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
+        });
+
+        canvas.addEventListener('mouseup', () => drawing = false);
+        canvas.addEventListener('mouseout', () => drawing = false);
+        canvas.addEventListener('mousemove', draw);
+
+        function draw(event) {
+            if (!drawing) return;
+
+            ctx.lineWidth = erasing ? 20 : 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = erasing ? 'white' : 'black';
+
+            ctx.lineTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
+            ctx.stroke();
+        }
+
+        // Clear canvas
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        });
+
+        // Toggle between eraser and drawing mode
+        document.getElementById('eraserBtn').addEventListener('click', () => {
+            erasing = true;
+            canvas.classList.remove('drawing-cursor');
+            canvas.classList.add('eraser-cursor');
+        });
+
+        document.getElementById('drawBtn').addEventListener('click', () => {
+            erasing = false;
+            canvas.classList.remove('eraser-cursor');
+            canvas.classList.add('drawing-cursor');
+        });
+
+        // Submit the canvas image to the API
+        document.getElementById('submitBtn').addEventListener('click', () => {
+            const canvasData = canvas.toDataURL('image/png');
+            const formData = new FormData();
+            formData.append('image', dataURItoBlob(canvasData), 'canvas_image.png');
+
+            fetch('http://127.0.0.1:5000/upload_image', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.blob())
+            .then(blob => {
+                const uploadedImage = document.getElementById('uploadedImage');
+                const url = URL.createObjectURL(blob);
+                uploadedImage.src = url;
+                uploadedImage.style.display = 'block';
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        // Convert base64 to blob
+        function dataURItoBlob(dataURI) {
+            const byteString = atob(dataURI.split(',')[1]);
+            const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+            const buffer = new ArrayBuffer(byteString.length);
+            const data = new Uint8Array(buffer);
+            for (let i = 0; i < byteString.length; i++) {
+                data[i] = byteString.charCodeAt(i);
+            }
+            return new Blob([buffer], { type: mimeString });
+        }
+
+        // Handle image upload
+        document.getElementById('uploadBtn').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html>
