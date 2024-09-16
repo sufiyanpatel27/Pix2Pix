@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pix2Pix</title>
     <style>
-        body, html {
+        body,
+        html {
             height: 100%;
             margin: 0;
             display: flex;
@@ -45,6 +47,26 @@
             display: none;
         }
 
+        .image-preview-section {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .image-preview-section img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid transparent;
+            border-radius: 5px;
+            transition: border-color 0.3s ease;
+        }
+
+        .image-preview-section img:hover {
+            border-color: #007BFF;
+        }
+
         button {
             margin: 0 5px;
             padding: 10px 15px;
@@ -81,25 +103,18 @@
             background-color: #c82333;
         }
 
-        /* Custom cursors */
-        .drawing-cursor {
-            cursor: url('https://cdn-icons-png.flaticon.com/512/23/23892.png'), auto;
-        }
-
-        .eraser-cursor {
-            cursor: url('https://cdn-icons-png.flaticon.com/512/67/67312.png'), auto;
-        }
-
         /* Hidden file input */
         input[type="file"] {
             display: none;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Pix2Pix</h1>
-        <p>This AI-powered tool generates realistic shoe images that allow users to visualize fully designed shoes based on their custom outlines from simple sketches.</p>
+        <p>This AI-powered tool generates realistic shoe images that allow users to visualize fully designed shoes based
+            on their custom outlines from simple sketches.</p>
         <div class="tools">
             <button id="uploadBtn">Upload Image</button>
             <button id="clearBtn">Clear</button>
@@ -108,12 +123,20 @@
             <button id="submitBtn">Submit</button>
         </div>
 
+        <!-- Image Previews -->
+        <div class="image-preview-section" id="imagePreviews">
+            <!-- Images will be displayed here dynamically -->
+        </div>
+
+        <br/>
+        
         <div id="canvasSection">
             <canvas id="canvas" width="400" height="400"></canvas>
             <img id="uploadedImage" src="" alt="Uploaded Image" width="400" />
         </div>
 
         <input type="file" id="fileInput" />
+
     </div>
 
     <script>
@@ -129,7 +152,7 @@
         // Mouse down event to start drawing
         canvas.addEventListener('mousedown', (event) => {
             drawing = true;
-            ctx.beginPath();  
+            ctx.beginPath();
             ctx.moveTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
         });
 
@@ -178,13 +201,13 @@
                 method: 'POST',
                 body: formData
             }).then(response => response.blob())
-            .then(blob => {
-                const uploadedImage = document.getElementById('uploadedImage');
-                const url = URL.createObjectURL(blob);
-                uploadedImage.src = url;
-                uploadedImage.style.display = 'block';
-            })
-            .catch(error => console.error('Error:', error));
+                .then(blob => {
+                    const uploadedImage = document.getElementById('uploadedImage');
+                    const url = URL.createObjectURL(blob);
+                    uploadedImage.src = url;
+                    uploadedImage.style.display = 'block';
+                })
+                .catch(error => console.error('Error:', error));
         });
 
         // Convert base64 to blob
@@ -219,6 +242,26 @@
                 reader.readAsDataURL(file);
             }
         });
+
+        // Load images and set up preview click functionality
+        const imageFolder = ['/static/images/1.jpg', '/static/images/2.jpg', '/static/images/3.jpg', '/static/images/4.jpg', '/static/images/5.jpg', '/static/images/6.jpg']; // Updated paths
+        const imagePreviews = document.getElementById('imagePreviews');
+
+        imageFolder.forEach(src => {
+            const imgElement = document.createElement('img');
+            imgElement.src = src;
+            imgElement.addEventListener('click', () => {
+                const img = new Image();
+                img.src = src;
+                img.onload = function () {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                };
+            });
+            imagePreviews.appendChild(imgElement);
+        });
     </script>
+
 </body>
+
 </html>
