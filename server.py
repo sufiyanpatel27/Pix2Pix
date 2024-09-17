@@ -5,6 +5,9 @@ import os
 import tensorflow as tf
 import numpy as np
 from keras.models import load_model  # type: ignore
+import gdown
+
+
 
 app = Flask(__name__, static_folder='static', template_folder='static')
 CORS(app)  # Enable CORS for all domains
@@ -62,8 +65,19 @@ def process_and_save_image(model, input_image_path):
 
     print(f"Output saved to {output_image_path}")
 
+
+file_id = '1-1lt6wvrggY1cieLYSKNp6gIDiwZwFY6'
+# https://drive.google.com/file/d/1-1lt6wvrggY1cieLYSKNp6gIDiwZwFY6/view?usp=drive_link
+
+
+url = f'https://drive.google.com/uc?id={file_id}'
+
+output = 'model.h5'  # Save as this file
+gdown.download(url, output, quiet=False)
+
+
 # Load the model
-model = load_model("./model_000145.h5")
+model = load_model(output)
 
 @app.route('/')
 def index():
