@@ -13,6 +13,14 @@ The Pix2Pix Shoe Image Generator is a machine learning application built using *
 
 ## Screenshots
 
+<p align="center">
+  <img src="https://github.com/sufiyanpatel27/Pix2Pix/blob/main//assets/HomePage1.png?raw=true" alt="Alt Text" width="700">
+  <img src="https://github.com/sufiyanpatel27/Pix2Pix/blob/main//assets/HomePage2.png?raw=true" alt="Alt Text" width="700">
+  <img src="https://github.com/sufiyanpatel27/Pix2Pix/blob/main//assets/HomePage3.png?raw=true" alt="Alt Text" width="700">
+  <img src="https://github.com/sufiyanpatel27/Pix2Pix/blob/main//assets/HomePage4.png?raw=true" alt="Alt Text" width="700">
+  <img src="https://github.com/sufiyanpatel27/Pix2Pix/blob/main//assets/HomePage5.png?raw=true" alt="Alt Text" width="700">
+  <img src="https://github.com/sufiyanpatel27/Pix2Pix/blob/main//assets/HomePage6.png?raw=true" alt="Alt Text" width="700">
+</p>
 
 ### 🌟 Features
 
